@@ -7,6 +7,9 @@ on:
   push:
     tags:
       - 'v*'
+  repository_dispatch:
+    types:
+      - prerelease-linux-arm64
   workflow_dispatch:
     inputs:
       publish_release:
@@ -69,7 +72,7 @@ jobs:
         run: |
           RAW_VERSION=$(grep 'version:' pubspec.yaml | sed 's/version: //' | tr -d ' ')
           VERSION=$RAW_VERSION
-          if [ "${{ github.event_name }}" != "push" ] && [ "${{ github.event.inputs.publish_release }}" != "true" ]; then
+          if [ "${{ github.event_name }}" != "push" ] && [ "${{ github.event_name }}" != "repository_dispatch" ] && [ "${{ github.event.inputs.publish_release }}" != "true" ]; then
             SHORT_SHA=$(git rev-parse --short HEAD)
             VERSION="${VERSION}_${SHORT_SHA}"
           fi
@@ -280,12 +283,12 @@ jobs:
           docker run --rm -v "${PWD}:/work" -w /work fedora:43 bash -lc "dnf -y install ./${RPM_FILE}"
 
       - name: 🚀 发布到 Release
-        if: ${{ github.event_name == 'push' || (github.event.inputs.publish_release == 'true' && github.event.inputs.release_tag != '') }}
+        if: ${{ github.event_name == 'push' || github.event_name == 'repository_dispatch' || (github.event.inputs.publish_release == 'true' && github.event.inputs.release_tag != '') }}
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.event_name == 'push' && github.ref_name || github.event.inputs.release_tag }}
-          name: ${{ github.event_name == 'push' && github.ref_name || github.event.inputs.release_tag }}
-          prerelease: ${{ github.event_name == 'push' || github.event.inputs.prerelease == 'true' }}
+          tag_name: ${{ github.event_name == 'push' && github.ref_name || github.event.client_payload.release_tag || github.event.inputs.release_tag }}
+          name: ${{ github.event_name == 'push' && github.ref_name || github.event.client_payload.release_tag || github.event.inputs.release_tag }}
+          prerelease: ${{ github.event_name == 'push' || github.event_name == 'repository_dispatch' || github.event.inputs.prerelease == 'true' }}
           files: |
             Kelivo_linux_*_arm64.tar.gz
             Kelivo_linux_*_arm64.AppImage
