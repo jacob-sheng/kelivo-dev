@@ -51,6 +51,7 @@ jobs:
             libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
             gstreamer1.0-plugins-good gstreamer1.0-plugins-bad \
             rpm patchelf libfuse2 file \
+            libunwind-dev \
             libkeybinder-3.0-dev libayatana-appindicator3-dev
 
       - name: 🐦 安装 Flutter
