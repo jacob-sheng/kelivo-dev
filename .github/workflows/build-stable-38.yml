@@ -4,6 +4,9 @@ env:
   FLUTTER_VERSION: '3.38.5'  # 修改为你需要的 Flutter 版本
 
 on:
+  push:
+    tags:
+      - 'debug-test-*'
   # 手动触发
   workflow_dispatch:
     inputs:
@@ -62,7 +65,7 @@ on:
 jobs:
   # Android 构建
   android:
-    if: ${{ github.event.inputs.build_android == 'true' }}
+    if: ${{ github.event_name == 'push' || github.event.inputs.build_android == 'true' }}
     name: 构建 Android
     runs-on: ubuntu-latest
     permissions: write-all
